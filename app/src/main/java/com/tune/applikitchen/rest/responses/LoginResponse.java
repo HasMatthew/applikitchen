@@ -1,26 +1,24 @@
 package com.tune.applikitchen.rest.responses;
 
-/**
- * Created by johnny on 8/14/14.
- */
 public class LoginResponse {
+    private static final String FIELD_TOKEN = "token";
+
+    public String token;
+    public boolean status;
+
     public String getToken() {
-        return Token;
+        return token;
     }
 
-    public void setToken(String token) {
-        Token = token;
+    public void setToken(String s) {
+        token = s;
     }
 
-    private String Token;
-
-    public boolean isStatus() {
-        return Status;
+    public boolean getStatus() {
+        return status;
     }
 
-    public void setStatus(boolean status) {
-        Status = status;
+    public void setStatus(boolean b) {
+        status = b;
     }
-
-    private boolean Status;
 }

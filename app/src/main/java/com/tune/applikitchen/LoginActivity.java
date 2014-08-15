@@ -134,12 +134,12 @@ public class LoginActivity extends Activity {
     }
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
-        return email.contains("@");
+        return true;//email.contains("@");
     }
 
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
-        return password.length() > 4;
+        return true;//password.length() > 4;
     }
 
     /**
@@ -197,9 +197,9 @@ public class LoginActivity extends Activity {
             // TODO: attempt authentication against a network service.
 
 
-            Api api = RestServiceFactory.getService("http://localhost:8080/", Api.class, client);
+            Api api = RestServiceFactory.getService("http://192.168.211.95:8080", Api.class, client);
 
-            api.authenticate("johnny@tune.com", "test", new Callback<LoginResponse>() {
+            api.authenticate(mEmail, mPassword, new Callback<LoginResponse>() {
 
                 @Override
                 public void onResponse(Response<LoginResponse> response) {
