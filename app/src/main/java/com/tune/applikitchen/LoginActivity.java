@@ -27,6 +27,7 @@ import android.widget.Toast;
 import com.google.gson.reflect.TypeToken;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
+import com.tune.applikitchen.meals.MealsActivity;
 
 /**
  * A login screen that offers login via email/password.
@@ -227,7 +228,9 @@ public class LoginActivity extends Activity {
         //Stored auth token
         sharedPref.edit().putString("auth", loginResp.token).apply();
 
-
+        Intent mealsActivityIntent = new Intent(this, MealsActivity.class);
+        startActivity(mealsActivityIntent);
+        finish();
     }
 
     public static class Login {
