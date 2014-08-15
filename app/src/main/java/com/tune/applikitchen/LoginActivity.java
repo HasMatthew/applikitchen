@@ -45,6 +45,14 @@ public class LoginActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getCachedCredentials()) {
+            //if we have credentials just forward the user
+            //no need to do anything else here if they're valid.
+            startMeals();
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_login);
 
         // Set up the login form.
@@ -208,7 +216,7 @@ public class LoginActivity extends Activity {
                             return;
                         }
 
-                        successfulLogin(loginResp);
+                        success(loginResp);
                     }
                 });
     }
@@ -219,18 +227,36 @@ public class LoginActivity extends Activity {
      *
      * @param loginResp
      */
-    public void successfulLogin(Login loginResp) {
+    public void success(Login loginResp) {
         Toast.makeText(LoginActivity.this, "Successfully logged in as : " + loginResp.token, Toast.LENGTH_LONG).show();
-        Main.Session = loginResp;
+        Main.SessionToken = loginResp.token;
 
         SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
 
         //Stored auth token
         sharedPref.edit().putString("auth", loginResp.token).apply();
 
+        startMeals();
+    }
+
+    public void startMeals() {
         Intent mealsActivityIntent = new Intent(this, MealsActivity.class);
         startActivity(mealsActivityIntent);
         finish();
+    }
+
+    public boolean getCachedCredentials() {
+        String token = getPreferences(Context.MODE_PRIVATE).getString("auth", "");
+
+        if(token.equals("")) {
+            //no token, ermagerd
+            return false;
+        }
+
+        //Assign the session token and get outta here
+        Main.SessionToken = token;
+
+        return true;
     }
 
     public static class Login {
