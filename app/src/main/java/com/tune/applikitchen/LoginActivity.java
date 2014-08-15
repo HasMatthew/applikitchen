@@ -115,14 +115,14 @@ public class LoginActivity extends Activity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            processLogin();
+            processLogin(email, password);
         }
     }
 
-    private void processLogin() {
+    private void processLogin(String email, String password) {
 
         try {
-            getLogin();
+            getLogin(email, password);
         } catch (Exception e) {
             Toast.makeText(this, R.string.login_error, Toast.LENGTH_LONG).show();
             showProgress(false);
@@ -176,9 +176,11 @@ public class LoginActivity extends Activity {
         }
     }
 
-    public void getLogin() throws Exception {
+    public void getLogin(String email, String password) throws Exception {
         Ion.with(this)
-                .load(Main.BASE_URL+"/login")
+                .load(Main.BASE_URL+"/login/"+email)
+                .setBodyParameter("password", password)
+                .setBodyParameter("email", email)
                 .as(new TypeToken<Login>(){})
                 .setCallback(new FutureCallback<Login>() {
                     @Override
