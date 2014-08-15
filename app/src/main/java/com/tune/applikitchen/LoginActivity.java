@@ -19,13 +19,11 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.reflect.TypeToken;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
-
-import java.util.List;
-
 
 /**
  * A login screen that offers login via email/password.
@@ -33,10 +31,6 @@ import java.util.List;
  */
 public class LoginActivity extends Activity {
 
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
-    private UserLoginTask mAuthTask = null;
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -82,9 +76,6 @@ public class LoginActivity extends Activity {
      * errors are presented and no actual login attempt is made.
      */
     public void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
 
         // Reset errors.
         mEmailView.setError(null);
@@ -124,10 +115,21 @@ public class LoginActivity extends Activity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
+            processLogin();
         }
     }
+
+    private void processLogin() {
+
+        try {
+            getLogin();
+        } catch (Exception e) {
+            Toast.makeText(this, R.string.login_error, Toast.LENGTH_LONG).show();
+            showProgress(false);
+        }
+
+    }
+
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
         return true;//email.contains("@");
@@ -176,73 +178,43 @@ public class LoginActivity extends Activity {
 
     public void getLogin() throws Exception {
         Ion.with(this)
-                .load("http://192.168.211.95:8080/login")
+                .load(Main.BASE_URL+"/login")
                 .as(new TypeToken<Login>(){})
                 .setCallback(new FutureCallback<Login>() {
                     @Override
                     public void onCompleted(Exception e, Login loginResp) {
-                        System.out.println("Logged in as " + loginResp.token);
+                        showProgress(false);
+
+                        if(e != null) {
+                            System.out.println("Ooops, an error came up bro");
+                            Toast.makeText(LoginActivity.this, R.string.login_error, Toast.LENGTH_LONG).show();;
+                            return;
+                        }
+
+                        if(!loginResp.status) {
+                            Toast.makeText(LoginActivity.this, "Looks like your credentials were denied bruh", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        successfulLogin(loginResp);
                     }
                 });
+    }
+
+    /**
+     * Do whatever needs to be done after a successful login
+     * Perhaps a dancing bear gif?
+     *
+     * @param loginResp
+     */
+    public void successfulLogin(Login loginResp) {
+        Toast.makeText(LoginActivity.this, "Successfully logged in as : " + loginResp.token, Toast.LENGTH_LONG).show();
+        System.out.println("Logged in as " + loginResp.token);
     }
 
     public static class Login {
         public String token;
         public boolean status;
-    }
-
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String mEmail;
-        private final String mPassword;
-
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-           try {
-               LoginActivity.this.getLogin();
-           }
-           catch(Exception e) {
-               System.out.println("errorrrrrrrr");
-           }
-
-          try {
-              Thread.sleep(5000);
-          }
-          catch(Exception e) {
-
-          }
-            // TODO: register the new account here.
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
-
-            if (success) {
-                finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
-        }
     }
 }
 
