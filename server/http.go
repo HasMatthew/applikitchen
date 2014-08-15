@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/sha512"
+	"os"
 	"log"
 	"database/sql"
 	"encoding/binary"
@@ -11,6 +12,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/handlers"
 	"net/http"
 	mrand "math/rand"
 	"time"
@@ -117,8 +119,7 @@ func main() {
 	router.HandleFunc("/auth/{email}", authHandler)
 	router.HandleFunc("/ping/", pingHandler)
 
-	http.Handle("/", router)
-	//if err := http.ListenAndServe("172.31.0.230:8080", nil); err != nil {
+	http.Handle("/", handlers.LoggingHandler(os.Stdout, router))
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
