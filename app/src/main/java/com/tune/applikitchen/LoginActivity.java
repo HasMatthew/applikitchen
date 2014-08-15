@@ -5,6 +5,9 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
 import android.os.Build;
@@ -33,7 +36,7 @@ public class LoginActivity extends Activity {
 
 
     // UI references.
-    private AutoCompleteTextView mEmailView;
+    private TextView mEmailView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
@@ -44,21 +47,19 @@ public class LoginActivity extends Activity {
         setContentView(R.layout.activity_login);
 
         // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+        mEmailView = (EditText) findViewById(R.id.email);
 
         mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+
+        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+        Button mEmailSignUpButton = (Button) findViewById(R.id.email_sign_up_button);
+        mEmailSignUpButton.setOnClickListener(new OnClickListener() {
             @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
-                    return true;
-                }
-                return false;
+            public void onClick(View view) {
+                sendToSignup();
             }
         });
 
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -68,6 +69,12 @@ public class LoginActivity extends Activity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+    }
+
+
+    public void sendToSignup() {
+        Intent intent = new Intent(this, SignupActivity.class);
+        startActivity(intent);
     }
 
     /**
@@ -177,8 +184,10 @@ public class LoginActivity extends Activity {
     }
 
     public void getLogin(String email, String password) throws Exception {
+        String endpoint = Main.BASE_URL+"/login/"+email;
+        System.out.println("Attempting to auth @ "+ endpoint);
         Ion.with(this)
-                .load(Main.BASE_URL+"/login/"+email)
+                .load(endpoint)
                 .setBodyParameter("password", password)
                 .setBodyParameter("email", email)
                 .as(new TypeToken<Login>(){})
@@ -211,7 +220,14 @@ public class LoginActivity extends Activity {
      */
     public void successfulLogin(Login loginResp) {
         Toast.makeText(LoginActivity.this, "Successfully logged in as : " + loginResp.token, Toast.LENGTH_LONG).show();
-        System.out.println("Logged in as " + loginResp.token);
+        Main.Session = loginResp;
+
+        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+
+        //Stored auth token
+        sharedPref.edit().putString("auth", loginResp.token).apply();
+
+
     }
 
     public static class Login {
