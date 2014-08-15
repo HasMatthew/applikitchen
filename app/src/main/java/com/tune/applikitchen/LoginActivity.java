@@ -20,13 +20,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.tune.applikitchen.rest.Api;
-import com.tune.applikitchen.rest.responses.LoginResponse;
-import ly.apps.android.rest.client.Callback;
-import ly.apps.android.rest.client.Response;
-import ly.apps.android.rest.client.RestClient;
-import ly.apps.android.rest.client.RestClientFactory;
-import ly.apps.android.rest.client.RestServiceFactory;
+import com.google.gson.reflect.TypeToken;
+import com.koushikdutta.async.future.FutureCallback;
+import com.koushikdutta.ion.Ion;
+
+import java.util.List;
 
 
 /**
@@ -45,13 +43,11 @@ public class LoginActivity extends Activity {
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-    public RestClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        client = RestClientFactory.defaultClient(this);
 
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
@@ -178,6 +174,23 @@ public class LoginActivity extends Activity {
         }
     }
 
+    public void getLogin() throws Exception {
+        Ion.with(this)
+                .load("http://192.168.211.95:8080/login")
+                .as(new TypeToken<Login>(){})
+                .setCallback(new FutureCallback<Login>() {
+                    @Override
+                    public void onCompleted(Exception e, Login loginResp) {
+                        System.out.println("Logged in as " + loginResp.token);
+                    }
+                });
+    }
+
+    public static class Login {
+        public String token;
+        public boolean status;
+    }
+
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
@@ -195,20 +208,19 @@ public class LoginActivity extends Activity {
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
+           try {
+               LoginActivity.this.getLogin();
+           }
+           catch(Exception e) {
+               System.out.println("errorrrrrrrr");
+           }
 
+          try {
+              Thread.sleep(5000);
+          }
+          catch(Exception e) {
 
-            Api api = RestServiceFactory.getService("http://192.168.211.95:8080", Api.class, client);
-
-            api.authenticate(mEmail, mPassword, new Callback<LoginResponse>() {
-
-                @Override
-                public void onResponse(Response<LoginResponse> response) {
-                    // This will be invoke in the UI thread after serialization with your objects ready to use
-                    System.out.println("Successful login! " + response.getRawData());
-                }
-
-            });
-
+          }
             // TODO: register the new account here.
             return true;
         }
